@@ -4,78 +4,83 @@ from os.path import isfile, join
 import datetime
 from functools import reduce
 import time
-from memory_profiler import profile
-# from profilehooks import profile
+import loader
+import merger
+import writer
 
-root_path = "~/parquet/"
-outpu_path = "~/parquet-new/"
+import argparse
+
+parser = argparse.ArgumentParser(description='Consolidate multiple parquet files into just one.')
+parser.add_argument('input_dir', metavar='-i', type=str, nargs=1,
+                    help='input directories which contain a number of parquet files to be merged')
+parser.add_argument('date', metavar='-d', type=str, nargs=1,
+                    help='date to truncate the output to (only makes sense in the context of James Prince\'s project')
+parser.add_argument('output_dir', metavar='-o', type=str, nargs=1,
+                    help='output directory for the parquet file (including .parquet extension)')
+
+args = parser.parse_args()
+print(args.input_dir)
+print(args.date)
+print(args.output_dir)
+
+data_root = args.input_dir[0]
+date = args.date[0]
+output_path = args.output_dir[0] + date + ".parquet"
+
+file_names = loader.enum_all_files(data_root)
+print(file_names)
+full_dirs = list(map(lambda x: data_root + x, file_names))
+test_dirs = full_dirs[0:2]
 
 
-def mem_usage(df):
-    for dtype in ['float', 'int', 'object']:
-        selected_dtype = df.select_dtypes(include=[dtype])
-        mean_usage_b = selected_dtype.memory_usage(deep=True).mean()
-        mean_usage_mb = mean_usage_b / 1024 ** 2
-        print("Average memory usage for {} columns: {:03.2f} MB".format(dtype, mean_usage_mb))
+def merge_data():
+    start_time = time.time()
 
-def generate_feed_path(exchange):
-    today = datetime.datetime.utcnow().date()
-    path = "parquet/" + exchange + "/orderbook/feed/"
-    return path
+    loaded_sets = loader.load_sets(test_dirs)
+    merged_set = merger.merge_sets(loaded_sets)
+
+    print("Merge took: " + str(time.time() - start_time))
+    start_time = time.time()
+
+    ordered_df = writer.to_ordered_df(merged_set)
+    writer.write_to_disk(ordered_df, output_path)
+
+    print("Writing took: " + str(time.time() - start_time))
 
 
-def generate_trades_path(exchange):
-    today = datetime.datetime.utcnow().date()
-    time = datetime.datetime.utcnow().time()
-    path = "parquet/" + exchange + "/orderbook/trades/" + str(today) + "/" + str(time) + ".parquet"
-    return path
-
-def get_parquet_files(path):
-    return [f for f in listdir(path) if isfile(join(path, f)) and str.endswith(".parquet")]
-
-def get_path_for_day(root_path, date: datetime.date):
-    return root_path + date
-
-# def load_day(date):
+# # Use dfs throughout
+# def task_2():
+#     start_time = time.time()
+#
+#     loaded_dfs = map(loader.load_df, test_dirs)
+#     ordered_df = merger.merge_dfs(loaded_dfs)
+#
+#     print(ordered_df)
+#
+#     print("Merge took: " + str(time.time() - start_time))
+#     start_time = time.time()
+#
+#     writer.write_to_disk(ordered_df, "2018-03-25-2")
+#
+#     print("Writing took: " + str(time.time() - start_time))
 #
 #
+# # Sort values inside the DataFrame
+# def task_3():
+#     start_time = time.time()
 #
-#     parquet_files = get_parquet_files()
+#     loaded_sets = loader.load_sets(test_dirs)
+#     merged_set = merger.merge_sets(loaded_sets)
 #
+#     print("Merge took: " + str(time.time() - start_time))
+#     start_time = time.time()
 #
-#     for i in range()
+#     ordered_df = writer.to_ordered_df_2(merged_set)
+#     writer.write_to_disk(ordered_df, "2018-03-25-3")
 #
-#     pd.read_parquet(filename)
+#     print("Writing took: " + str(time.time() - start_time))
 
 
-    #output graph/save to disk
-# @profile
-def consolidate(date):
-    path = "/Users/jamesprince/" + generate_feed_path("gdax") + date + "/"
-    print(path)
-    chunks = [f for f in listdir(path) if isfile(join(path, f)) and f.endswith(".parquet")]
-    chunks.sort()
+if __name__ == "__main__":
+    merge_data()
 
-    print(len(chunks))
-
-    df = pd.read_parquet(path + chunks[0])
-
-    for chunk in chunks[1:]:
-        right = pd.read_parquet(path + chunk)
-        df = df.append(right)
-        # mem_usage(df)
-
-    print(df)
-    return df.drop_duplicates().sort_values(by=['time'])
-
-def write_out(df: pd.DataFrame, date):
-    path = "/Users/jamesprince/" + generate_feed_path("gdax") + date + ".parquet"
-    df.to_parquet(path)
-
-
-start = time.time()
-date = "2018-01-30"
-consol_df = consolidate(date)
-write_out(consol_df, date)
-end = time.time()
-print(end - start)
