@@ -30,19 +30,23 @@ output_path = args.output_dir[0] + date + ".parquet"
 file_names = loader.enum_all_files(data_root)
 print(file_names)
 full_dirs = list(map(lambda x: data_root + x, file_names))
-test_dirs = full_dirs[0:2]
+# test_dirs = full_dirs[0:2]
 
 
 def merge_data():
     start_time = time.time()
 
-    loaded_sets = loader.load_sets(test_dirs)
+    loaded_sets = loader.load_sets(full_dirs[0:2])
     merged_set = merger.merge_sets(loaded_sets)
 
     print("Merge took: " + str(time.time() - start_time))
     start_time = time.time()
 
     ordered_df = writer.to_ordered_df(merged_set)
+
+    ordered_df = ordered_df[ordered_df['time'].str.contains(date)]
+    ordered_df.index = range(len(ordered_df.index))
+    # print(ordered_df)
     writer.write_to_disk(ordered_df, output_path)
 
     print("Writing took: " + str(time.time() - start_time))
