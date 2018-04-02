@@ -31,13 +31,12 @@ def merge_dfs(dfs: Iterator[pd.DataFrame]) -> pd.DataFrame:
     return result
 
 
-def merge_all_files(merge_root: str, paths: List[str]) -> set:
+def merge_all_files(paths: List[str]) -> set:
     result = set([])
     for path in paths:
         print("merging in: " + path)
         start_time = time.time()
-        full_path = merge_root + path
-        df = loader.load_df(full_path)
+        df = loader.load_df(path)
         df_set = loader.to_set(df)
         result = merge_sets([result, df_set])
         # print("took: " + str(time.time() - start_time) + " seconds")

@@ -33,8 +33,9 @@ full_dirs = list(map(lambda x: data_root + x, file_names))
 def merge_data():
     start_time = time.time()
 
-    loaded_sets = loader.load_sets(full_dirs[0:2])
-    merged_set = merger.merge_sets(loaded_sets)
+    # loaded_sets = loader.load_sets(full_dirs)
+    merged_set = merger.merge_all_files(full_dirs[0:30])
+    print(list(filter(lambda x: len(x) != 16, merged_set)))
 
     print("Merge took: " + str(time.time() - start_time))
     start_time = time.time()
@@ -43,7 +44,7 @@ def merge_data():
 
     ordered_df = ordered_df[ordered_df['time'].str.contains(date)]
     ordered_df.index = range(len(ordered_df.index))
-    # print(ordered_df)
+    print(ordered_df)
     writer.write_to_disk(ordered_df, output_path)
 
     print("Writing took: " + str(time.time() - start_time))
