@@ -34,7 +34,7 @@ def merge_data():
     start_time = time.time()
 
     # loaded_sets = loader.load_sets(full_dirs)
-    merged_set = merger.merge_all_files(full_dirs[0:30])
+    merged_set = merger.merge_all_files(full_dirs[0:2])
     print(list(filter(lambda x: len(x) != 16, merged_set)))
 
     print("Merge took: " + str(time.time() - start_time))

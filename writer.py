@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-import fastparquet
+# import fastparquet
 
 
 def to_ordered_df(s: set) -> pd.DataFrame:

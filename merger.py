@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 import time
 import loader
-import fastparquet
+# import fastparquet
 from os import listdir
 from os.path import isfile, join
 
