@@ -21,19 +21,17 @@ def enum_all_files(path: str) -> List[str]:
 
 
 def load_df(path) -> pd.DataFrame:
-    df: pd.DataFrame = pd.read_parquet(path)
-    print(df.columns.values)
-    print("df has "+str(len(df.columns.values))+" columns")
+    df = pd.read_parquet(path)
     return df.where((pd.notnull(df)), None)
 
 
-def load_sets(paths: List[str]) -> List[set]:
-    sets = []
-    for path in paths:
-        df = load_df(path)
-        s = to_set(df)
-        sets.append(s)
-    return sets
+# def load_sets(paths: List[str]) -> List[set]:
+#     sets = []
+#     for path in paths:
+#         df = load_df(path)
+#         s = to_set(df)
+#         sets.append(s)
+#     return sets
 
 
 # This code splits up a list into n slices of approximately the same length (useful for parallelisation)
