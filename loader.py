@@ -14,10 +14,6 @@ five_path = "5/23:52:42.507663.parquet"
 six_path = "6/23:56:36.712293.parquet"
 
 
-def to_set(df: pd.DataFrame) -> set:
-    return set(map(tuple, df.values.tolist()))
-
-
 def enum_all_files(path: str) -> List[str]:
     onlyfiles = [f for f in listdir(path) if isfile(join(path, f))]
     onlyfiles.sort()
@@ -25,7 +21,9 @@ def enum_all_files(path: str) -> List[str]:
 
 
 def load_df(path) -> pd.DataFrame:
-    df = pd.read_parquet(path)
+    df: pd.DataFrame = pd.read_parquet(path)
+    print(df.columns.values)
+    print("df has "+str(len(df.columns.values))+" columns")
     return df.where((pd.notnull(df)), None)
 
 
