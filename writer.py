@@ -22,5 +22,7 @@ def to_ordered_df_2(s: set) -> pd.DataFrame:
 
 
 def write_to_disk(df: pd.DataFrame, filename) -> None:
+    # df['']
+    df['size'] = pd.to_numeric(df['size'])
     df.to_parquet(filename)
 

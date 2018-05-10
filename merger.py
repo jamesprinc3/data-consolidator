@@ -1,10 +1,13 @@
 
 import threading
 from typing import Iterator, List
+
+import gc
 import pandas as pd
 import numpy as np
 import time
 import loader
+from memory_profiler import profile
 # import fastparquet
 from os import listdir
 from os.path import isfile, join
@@ -25,13 +28,11 @@ def to_set(df: pd.DataFrame) -> set:
     return set(map(tuple, df.values.tolist()))
 
 
+@profile
 def merge_sets(sets: List[set]) -> set:
-    result = set([])
-    num_sets_merged = 0
-    for s in sets:
+    result = sets[0]
+    for s in sets[1:]:
         result = result.union(s)
-        num_sets_merged += 1
-        print("Merged in set number " + str(num_sets_merged))
     return result
 
 
@@ -39,6 +40,7 @@ def merge_dfs(dfs: Iterator[pd.DataFrame]) -> pd.DataFrame:
     result = dfs.__next__()
     for df in dfs:
         result = result.append(df)
+        result = result.drop_duplicates()
     result.sort_values(by='time')
     return result
 
@@ -49,8 +51,19 @@ def merge_all_files(paths: List[str]) -> set:
         print("merging in: " + path)
         start_time = time.time()
         df = loader.load_df(path)
+        print("original: " + str(len(df['time'])))
+        print(df)
+        df = df[df['product_id'] == 'BTC-USD']
+        print("filtered: " + str(len(df['time'])))
         df_set = to_set(df)
         result = merge_sets([result, df_set])
+        # print("result object size: " + str(sys.getsizeof(result) / 1000000)  + "MB")
         # print("took: " + str(time.time() - start_time) + " seconds")
         # print("result: " + str(len(result)))
+
+        # for name, obj in (globals().items() + locals().items()):
+        #     if name != 'asizeof':
+        #         the_size = sys.getsizeof(obj) / 1000000
+        #         # if the_size > 1:
+        #         print(name + " " + str(the_size))
     return result
