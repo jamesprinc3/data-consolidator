@@ -1,5 +1,7 @@
 import argparse
+import errno
 import logging
+import os
 import time
 from logging.config import fileConfig
 
@@ -45,7 +47,7 @@ def merge_data():
         section_file_names = list(filter(lambda d: start_time < d < end_time, all_file_names))
         print(section_file_names)
 
-        full_dirs = list(map(lambda x: data_root + x, section_file_names))
+        full_dirs = list(map(lambda x: input_data_root + x, section_file_names))
         logger.debug(full_dirs)
 
         # loaded_sets = loader.load_sets(full_dirs)
@@ -61,13 +63,21 @@ def merge_data():
         ordered_df.index = range(len(ordered_df.index))
         logger.debug(ordered_df)
 
-        output_path = args.output_dir[0] + date + "-" + str(i) + ".parquet"
+        output_path = output_data_root + str(i) + ".parquet"
         logger.info("Writing to: " + output_path)
         writer.write_to_disk(ordered_df, output_path)
 
         logger.info("Writing took: " + str(time.time() - writing_t0))
         logger.info("Merge and write took: " + str(time.time() - section_t0))
     logger.info("Writing everything took: " + str(time.time() - t0))
+
+
+def ensure_dir_exists(directory):
+    try:
+        os.makedirs(directory)
+    except OSError as e:
+        if e.errno != errno.EEXIST:
+            raise
 
 
 if __name__ == "__main__":
@@ -77,9 +87,13 @@ if __name__ == "__main__":
     logger.debug(args)
 
     date = args.date[0]
-    data_root = args.input_dir[0] + date + "/"
 
-    all_file_names = loader.enum_all_files(data_root)
+    input_data_root = args.input_dir[0] + date + "/"
+    output_data_root = args.output_dir[0] + date + "/"
+
+    ensure_dir_exists(output_data_root)
+
+    all_file_names = loader.enum_all_files(input_data_root)
     print(all_file_names)
     # test_dirs = full_dirs[0:2]
 
