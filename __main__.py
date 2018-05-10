@@ -3,6 +3,7 @@ import errno
 import logging
 import os
 import time
+from datetime import timedelta
 from logging.config import fileConfig
 
 import loader
@@ -28,12 +29,14 @@ def get_times(section: int, num_sections: int) -> (str, str):
     start_time = "%02i:00:00.00000.parquet" % start_hours
 
     end_hours = (section + 1) * section_length_in_hours
-    end_time = "%02i:10:00.00000.parquet" % end_hours
+    end_time = "%02i:00:00.00000.parquet" % end_hours
+    end_file_time = "%02i:10:00.00000.parquet" % end_hours
 
     logger.debug("start_time: " + start_time)
     logger.debug("end_time: " + end_time)
+    logger.debug("end_file_time: " + end_time)
 
-    return start_time, end_time
+    return start_time, end_time, end_file_time
 
 
 def merge_data():
@@ -43,8 +46,8 @@ def merge_data():
     for i in range(0, num_sections):
         section_t0 = time.time()
 
-        start_time, end_time = get_times(i, num_sections)
-        section_file_names = list(filter(lambda d: start_time < d < end_time, all_file_names))
+        start_time, end_time, end_file_time = get_times(i, num_sections)
+        section_file_names = list(filter(lambda d: start_time < d < end_file_time, all_file_names))
         print(section_file_names)
 
         full_dirs = list(map(lambda x: input_data_root + x, section_file_names))
@@ -58,14 +61,18 @@ def merge_data():
         writing_t0 = time.time()
 
         ordered_df = writer.to_ordered_df(merged_set)
-
-        ordered_df = ordered_df[ordered_df['time'].str.contains(date)].drop_duplicates()
-        ordered_df.index = range(len(ordered_df.index))
         logger.debug(ordered_df)
 
-        output_path = output_data_root + str(i) + ".parquet"
+        filtered_df = ordered_df[ordered_df['time'].str.contains(date)]
+        filtered_df = filtered_df[filtered_df['time'] > date + "T" + start_time]
+        filtered_df = filtered_df[filtered_df['time'] < date + "T" + end_time].drop_duplicates()
+        filtered_df.index = range(len(filtered_df.index))
+
+        logger.debug(filtered_df)
+
+        output_path = output_data_root + str("%02i" % i) + ".parquet"
         logger.info("Writing to: " + output_path)
-        writer.write_to_disk(ordered_df, output_path)
+        writer.write_to_disk(filtered_df, output_path)
 
         logger.info("Writing took: " + str(time.time() - writing_t0))
         logger.info("Merge and write took: " + str(time.time() - section_t0))
