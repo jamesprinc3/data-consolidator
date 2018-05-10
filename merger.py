@@ -1,21 +1,17 @@
-
-import threading
+import logging
+import time
 from typing import Iterator, List
 
-import gc
-import pandas as pd
 import numpy as np
-import time
-import loader
-from memory_profiler import profile
-# import fastparquet
-from os import listdir
-from os.path import isfile, join
+import pandas as pd
 
+import loader
 
 input_columns = ['client_oid', 'funds', 'maker_order_id', 'new_size', 'old_size', 'order_id',
                  'order_type', 'price', 'product_id', 'reason', 'remaining_size', 'sequence',
                  'side', 'size', 'taker_order_id', 'time', 'trade_id', 'type']
+
+logger = logging.getLogger()
 
 
 def to_set(df: pd.DataFrame) -> set:
@@ -28,7 +24,6 @@ def to_set(df: pd.DataFrame) -> set:
     return set(map(tuple, df.values.tolist()))
 
 
-@profile
 def merge_sets(sets: List[set]) -> set:
     result = sets[0]
     for s in sets[1:]:
@@ -45,16 +40,16 @@ def merge_dfs(dfs: Iterator[pd.DataFrame]) -> pd.DataFrame:
     return result
 
 
-def merge_all_files(paths: List[str]) -> set:
+def merge_all_files(paths: List[str], product: str) -> set:
     result = set([])
     for path in paths:
-        print("merging in: " + path)
+        logger.info("merging in: " + path)
         start_time = time.time()
         df = loader.load_df(path)
-        print("original: " + str(len(df['time'])))
-        print(df)
-        df = df[df['product_id'] == 'BTC-USD']
-        print("filtered: " + str(len(df['time'])))
+        # print("original: " + str(len(df['time'])))
+        # print(df)
+        df = df[df['product_id'] == product]
+        # print("filtered: " + str(len(df['time'])))
         df_set = to_set(df)
         result = merge_sets([result, df_set])
         # print("result object size: " + str(sys.getsizeof(result) / 1000000)  + "MB")
