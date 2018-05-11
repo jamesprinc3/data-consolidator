@@ -8,10 +8,14 @@ output_columns = ['client_oid', 'funds', 'maker_order_id', 'order_id',
 
 
 def to_ordered_df(s: set) -> pd.DataFrame:
-    full_day = list(s)
-    full_day.sort(key=lambda x: "" if not x[13] else x[13])
-    full_day_df = pd.DataFrame(full_day, columns=output_columns)
-    return full_day_df
+    lst = list(s)
+    # lst = list(filter(lambda x: x[13], lst))
+    for item in lst:
+        if not str(item[0]).endswith("Z"):
+            print(item[0])
+    lst.sort(key=lambda x: "" if not x[0] else x[0])
+    df = pd.DataFrame(lst, columns=output_columns)
+    return df
 
 
 def to_ordered_df_2(s: set) -> pd.DataFrame:

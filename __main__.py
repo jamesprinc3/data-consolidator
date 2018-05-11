@@ -34,7 +34,7 @@ def get_times(section: int, num_sections: int) -> (str, str):
 
     logger.debug("start_time: " + start_time)
     logger.debug("end_time: " + end_time)
-    logger.debug("end_file_time: " + end_time)
+    logger.debug("end_file_time: " + end_file_time)
 
     return start_time, end_time, end_file_time
 
@@ -43,7 +43,7 @@ def merge_data():
     t0 = time.time()
 
     num_sections = 24  # Enforce this to be a multiple of 24?
-    for i in range(0, num_sections):
+    for i in range(18, num_sections):
         section_t0 = time.time()
 
         start_time, end_time, end_file_time = get_times(i, num_sections)
@@ -68,7 +68,7 @@ def merge_data():
         filtered_df = filtered_df[filtered_df['time'] < date + "T" + end_time].drop_duplicates()
         filtered_df.index = range(len(filtered_df.index))
 
-        logger.debug(filtered_df)
+        # logger.debug(filtered_df)
 
         output_path = output_data_root + str("%02i" % i) + ".parquet"
         logger.info("Writing to: " + output_path)
