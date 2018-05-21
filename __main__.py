@@ -3,7 +3,6 @@ import errno
 import logging
 import os
 import time
-from datetime import timedelta
 from logging.config import fileConfig
 
 import loader
@@ -43,7 +42,7 @@ def merge_data():
     t0 = time.time()
 
     num_sections = 24  # Enforce this to be a multiple of 24?
-    for i in range(18, num_sections):
+    for i in range(0, num_sections):
         section_t0 = time.time()
 
         start_time, end_time, end_file_time = get_times(i, num_sections)
@@ -52,6 +51,10 @@ def merge_data():
 
         full_dirs = list(map(lambda x: input_data_root + x, section_file_names))
         logger.debug(full_dirs)
+
+        if len(full_dirs) == 0:
+            logger.error("Found no files for " + start_time + " to " + end_time)
+            continue
 
         # loaded_sets = loader.load_sets(full_dirs)
         merged_set = merger.merge_all_files(full_dirs, "BTC-USD")
@@ -68,11 +71,7 @@ def merge_data():
         filtered_df = filtered_df[filtered_df['time'] < date + "T" + end_time].drop_duplicates()
         filtered_df.index = range(len(filtered_df.index))
 
-        # logger.debug(filtered_df)
-
-        output_path = output_data_root + str("%02i" % i) + ".parquet"
-        logger.info("Writing to: " + output_path)
-        writer.write_to_disk(filtered_df, output_path)
+        writer.write_to_disk(filtered_df, output_data_root, i)
 
         logger.info("Writing took: " + str(time.time() - writing_t0))
         logger.info("Merge and write took: " + str(time.time() - section_t0))

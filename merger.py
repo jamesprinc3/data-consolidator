@@ -5,9 +5,9 @@ import pandas as pd
 
 import loader
 
-cols = ['client_oid', 'funds', 'maker_order_id', 'new_size', 'old_size', 'order_id',
+cols = ['time', 'client_oid', 'funds', 'maker_order_id', 'new_size', 'old_size', 'order_id',
                  'order_type', 'price', 'product_id', 'reason', 'remaining_size', 'sequence',
-                 'side', 'size', 'taker_order_id', 'time', 'trade_id', 'type']
+                 'side', 'size', 'taker_order_id', 'trade_id', 'type']
 
 logger = logging.getLogger()
 
@@ -18,13 +18,14 @@ def to_set(df: pd.DataFrame) -> set:
         cols.remove('time')
     df['time'] = df['time'].dropna()
 
-    optional_cols = ['funds', 'new_size', 'old_size']
+    optional_cols = ['funds', 'new_size', 'old_size', 'maker_order_id', 'taker_order_id', 'trade_id']
 
     for col in optional_cols:
         if col not in df:
-            df[col] = 0
+            df[col] = pd.np.nan
 
     df = df[['time'] + cols]
+    print("columns: " + str(list(df.columns.values)))
     return set(map(tuple, df.values.tolist()))
 
 

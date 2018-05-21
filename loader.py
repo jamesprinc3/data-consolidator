@@ -1,20 +1,13 @@
-import threading
-from typing import List
-import pandas as pd
-import numpy as np
-import time
-# import pyarrow
 from os import listdir
 from os.path import isfile, join
+from typing import List
 
-
-data_root = "/Users/jamesprince/Google Drive/Imperial/4/Project/data/"
-four_path = "4/23:57:07.290121.parquet"
-five_path = "5/23:52:42.507663.parquet"
-six_path = "6/23:56:36.712293.parquet"
+import pandas as pd
+import pathlib
 
 
 def enum_all_files(path: str) -> List[str]:
+    pathlib.Path('parquet/gdax/orderbook/trades').mkdir(parents=True, exist_ok=True)
     onlyfiles = [f for f in listdir(path) if isfile(join(path, f))]
     onlyfiles.sort()
     return onlyfiles
