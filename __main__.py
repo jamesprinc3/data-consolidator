@@ -57,7 +57,7 @@ def merge_data():
             continue
 
         # loaded_sets = loader.load_sets(full_dirs)
-        merged_set = merger.merge_all_files(full_dirs, "BTC-USD")
+        merged_set = merger.merge_all_files(full_dirs, product)
         logger.debug(list(filter(lambda x: len(x) == 17, merged_set)))
 
         logger.info("Merge took: " + str(time.time() - section_t0))
@@ -93,6 +93,7 @@ if __name__ == "__main__":
     logger.debug(args)
 
     date = args.date[0]
+    product = args.product
 
     input_data_root = args.input_dir[0] + date + "/"
     output_data_root = args.output_dir[0] + date + "/"
