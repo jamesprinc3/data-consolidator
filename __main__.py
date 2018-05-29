@@ -93,7 +93,7 @@ if __name__ == "__main__":
     logger.debug(args)
 
     date = args.date[0]
-    product = args.product
+    product = args.product[0]
 
     input_data_root = args.input_dir[0] + date + "/"
     output_data_root = args.output_dir[0] + date + "/"
